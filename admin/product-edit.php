@@ -27,11 +27,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     $name = $_POST["name"];
-    $category = $_POST["category"];
-    $description = $_POST["description"];
+$product_code = $_POST["product_code"];
+$barcode = $_POST["barcode"];
+$lot_number = $_POST["lot_number"];
+$category = $_POST["category"];
+$description = $_POST["description"];
+$technical_info = $_POST["technical_info"];
+$production_date = $_POST["production_date"];
 
     $image = $urun["image"];
 
+$pdf_file = $urun["pdf_file"];
+$msds_file = $urun["msds_file"];
+$analysis_file = $urun["analysis_file"];
 
     if(isset($_FILES["image"]) && $_FILES["image"]["name"] != ""){
 
@@ -48,25 +56,92 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         );
 
     }
+    // PDF güncelleme
+if(isset($_FILES["pdf_file"]) && $_FILES["pdf_file"]["name"] != ""){
 
+    $klasor = "../uploads/pdf/";
+
+    if(!is_dir($klasor)){
+        mkdir($klasor, 0777, true);
+    }
+
+    $pdf_file = time() . "_" . $_FILES["pdf_file"]["name"];
+
+    move_uploaded_file(
+        $_FILES["pdf_file"]["tmp_name"],
+        $klasor . $pdf_file
+    );
+
+}
+
+
+// MSDS güncelleme
+if(isset($_FILES["msds_file"]) && $_FILES["msds_file"]["name"] != ""){
+
+    $klasor = "../uploads/msds/";
+
+    if(!is_dir($klasor)){
+        mkdir($klasor, 0777, true);
+    }
+
+    $msds_file = time() . "_" . $_FILES["msds_file"]["name"];
+
+    move_uploaded_file(
+        $_FILES["msds_file"]["tmp_name"],
+        $klasor . $msds_file
+    );
+
+}
+// Analiz / COA güncelleme
+if(isset($_FILES["analysis_file"]) && $_FILES["analysis_file"]["name"] != ""){
+
+    $klasor = "../uploads/analysis/";
+
+    if(!is_dir($klasor)){
+        mkdir($klasor, 0777, true);
+    }
+
+    $analysis_file = time() . "_" . $_FILES["analysis_file"]["name"];
+
+    move_uploaded_file(
+        $_FILES["analysis_file"]["tmp_name"],
+        $klasor . $analysis_file
+    );
+}
 
     $guncelle = $pdo->prepare(
-        "UPDATE products SET
-        name=?,
-        category=?,
-        description=?,
-        image=?
-        WHERE id=?"
-    );
+    "UPDATE products SET
+    name=?,
+    product_code=?,
+    barcode=?,
+    lot_number=?,
+    category=?,
+    description=?,
+    image=?,
+    pdf_file=?,
+msds_file=?,
+analysis_file=?,
+technical_info=?,
+production_date=?
+WHERE id=?"
+);
 
 
     $guncelle->execute([
-        $name,
-        $category,
-        $description,
-        $image,
-        $id
-    ]);
+    $name,
+    $product_code,
+    $barcode,
+    $lot_number,
+    $category,
+    $description,
+    $image,
+    $pdf_file,
+$msds_file,
+$analysis_file,
+$technical_info,
+$production_date,
+$id
+]);
 
 
     header("Location: products.php");
@@ -97,19 +172,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <form method="post" enctype="multipart/form-data">
 
 
-<label>
-Ürün Adı
-</label>
+<label>Ürün Adı</label>
 
-<br>
-
-<input 
+<input
 type="text"
 name="name"
-value="<?= $urun["name"] ?>"
+value="<?= htmlspecialchars($urun['name'] ?? '') ?>"
 style="width:100%;padding:10px;"
 >
 
+<br><br>
+
+<label>Ürün Kodu</label>
+
+<input
+type="text"
+name="product_code"
+value="<?= htmlspecialchars($urun['product_code'] ?? '') ?>"
+style="width:100%;padding:10px;"
+>
+
+<br><br>
+
+<label>Barkod No</label>
+
+<input
+type="text"
+name="barcode"
+value="<?= htmlspecialchars($urun['barcode'] ?? '') ?>"
+style="width:100%;padding:10px;"
+>
+
+<br><br>
+
+<label>Lot Numarası</label>
+
+<input
+type="text"
+name="lot_number"
+value="<?= htmlspecialchars($urun['lot_number'] ?? '') ?>"
+style="width:100%;padding:10px;"
+>
 
 <br><br>
 
@@ -120,13 +223,38 @@ Kategori
 
 <br>
 
-<input 
+<input
 type="text"
 name="category"
-value="<?= $urun["category"] ?>"
+value="<?= htmlspecialchars($urun['category'] ?? '') ?>"
 style="width:100%;padding:10px;"
 >
+<label>Açıklama</label>
 
+<textarea
+name="description"
+style="width:100%;padding:10px;"
+><?= htmlspecialchars($urun['description'] ?? '') ?></textarea>
+
+<br><br>
+
+<label>Teknik Bilgi</label>
+
+<textarea
+name="technical_info"
+style="width:100%;padding:10px;"
+><?= htmlspecialchars($urun['technical_info'] ?? '') ?></textarea>
+
+<br><br>
+
+<label>Üretim Tarihi</label>
+
+<input
+type="date"
+name="production_date"
+value="<?= htmlspecialchars($urun['production_date'] ?? '') ?>"
+style="width:100%;padding:10px;"
+>
 
 <br><br>
 
@@ -166,7 +294,61 @@ padding:12px 25px;
 border:0;
 "
 >
+<label>PDF Dosyası</label>
 
+<input
+type="file"
+name="pdf_file"
+accept=".pdf"
+>
+<?php if (!empty($urun['pdf_file'])): ?>
+
+    <p>
+        Mevcut PDF:
+        <a href="../uploads/pdf/<?= htmlspecialchars($urun['pdf_file']) ?>" target="_blank">
+            📄 PDF'yi Görüntüle
+        </a>
+    </p>
+
+<?php endif; ?>
+<br><br>
+
+<label>MSDS Dosyası</label>
+
+<input
+type="file"
+name="msds_file"
+accept=".pdf"
+>
+<?php if (!empty($urun['msds_file'])): ?>
+
+    <p>
+        Mevcut MSDS:
+        <a href="../uploads/msds/<?= htmlspecialchars($urun['msds_file']) ?>" target="_blank">
+            📄 MSDS'yi Görüntüle
+        </a>
+    </p>
+
+<?php endif; ?>
+<br><br>
+Analiz / COA Dosyası
+
+<input
+    type="file"
+    name="analysis_file"
+    accept=".pdf"
+>
+
+<?php if(!empty($urun["analysis_file"])): ?>
+
+<p>
+    Mevcut Analiz / COA:
+    <a href="../uploads/analysis/<?= htmlspecialchars($urun["analysis_file"]) ?>" target="_blank">
+        📄 Analiz / COA'yı Görüntüle
+    </a>
+</p>
+
+<?php endif; ?>
 Güncelle
 
 </button>

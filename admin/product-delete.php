@@ -9,13 +9,11 @@ if (!isset($_SESSION["admin"])) {
 
 require_once "../config/database.php";
 
-
 $id = $_GET["id"];
 
-
-// Önce ürün bilgisini alıyoruz
+// Ürünün dosya bilgilerini alıyoruz
 $sorgu = $pdo->prepare(
-    "SELECT image FROM products WHERE id=?"
+    "SELECT image, pdf_file, msds_file FROM products WHERE id=?"
 );
 
 $sorgu->execute([$id]);
@@ -23,20 +21,44 @@ $sorgu->execute([$id]);
 $urun = $sorgu->fetch(PDO::FETCH_ASSOC);
 
 
-// Resim varsa klasörden siliyoruz
-if($urun && $urun["image"]){
+// Ürün bulunduysa dosyaları siliyoruz
+if ($urun) {
 
-    $dosya = "../uploads/" . $urun["image"];
+    // Ürün resmi
+    if (!empty($urun["image"])) {
 
-    if(file_exists($dosya)){
-        unlink($dosya);
+        $dosya = "../uploads/" . $urun["image"];
+
+        if (file_exists($dosya)) {
+            unlink($dosya);
+        }
     }
 
+
+    // PDF
+    if (!empty($urun["pdf_file"])) {
+
+        $dosya = "../uploads/pdf/" . $urun["pdf_file"];
+
+        if (file_exists($dosya)) {
+            unlink($dosya);
+        }
+    }
+
+
+    // MSDS
+    if (!empty($urun["msds_file"])) {
+
+        $dosya = "../uploads/msds/" . $urun["msds_file"];
+
+        if (file_exists($dosya)) {
+            unlink($dosya);
+        }
+    }
 }
 
 
-// Veritabanından siliyoruz
-
+// Veritabanından ürünü siliyoruz
 $sil = $pdo->prepare(
     "DELETE FROM products WHERE id=?"
 );
@@ -44,9 +66,8 @@ $sil = $pdo->prepare(
 $sil->execute([$id]);
 
 
-
+// Ürünler sayfasına dön
 header("Location: products.php");
-
 exit;
 
 ?>

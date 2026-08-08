@@ -103,8 +103,9 @@ Resim Yok
 
 <td>
 
-<a href="#">
+<a href="product-edit.php?id=<?= $urun['id'] ?>">
 ✏ Düzenle
+
 </a>
 
 
@@ -176,8 +177,9 @@ onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?')">
 </a>
 
 
-<a href="#">
-Sil
+<a href="product-delete.php?id=<?= $urun['id'] ?>"
+onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?')">
+    🗑 Sil
 </a>
 
 
